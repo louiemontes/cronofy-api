@@ -5,12 +5,13 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "heroku-prebuild": "npm i"
+    "start": "node --optimize_for_size --max_old_space_size=920 --gc_interval=100 index.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "body-parser": "^1.18.3",
     "express": "^4.16.4",
     "foreman": "^3.0.1",
     "password-generator": "^2.2.0"

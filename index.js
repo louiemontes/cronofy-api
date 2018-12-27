@@ -1,13 +1,13 @@
 const express = require("express");
 const path = require("path");
 const generatePassword = require("password-generator");
-var http = require("http");
-var https = require("https");
+const bodyParser = require("body-parser");
 
 const app = express();
 
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, "client/build")));
+app.use(bodyParser.json());
 
 // Put all API endpoints under '/api'
 app.get("/api/passwords", (req, res) => {
@@ -32,7 +32,12 @@ app.get("*", (req, res) => {
 
 const port = process.env.PORT || 5000;
 //app.listen(port);
-https.createServer(app).listen(port)
+
+var server = app.listen(process.env.PORT || 8080, function () {
+  var port = server.address().port;
+  console.log("App now running on port", port);
+});
+
 
 console.log(`Password generator listening on ${port}`);
 
