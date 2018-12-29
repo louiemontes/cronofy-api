@@ -39,23 +39,6 @@ app.get("/cronofy-auth", async (req, res, next) => {
     const redirect_uri = "http://localhost:8080/nextStep";
     const scope = "read_events";
 
-    var options = {
-      uri: "https://app.cronofy.com/oauth/authorize",
-      method: "GET",
-      qs: {
-        response_type: "code",
-        client_id: "H64-3XqkIV37IKKqIg6PDlbIwq_C9qSa",
-        redirect_uri: "https://app.cronofy.com/oauth/v2/authorize",
-        scope: "read_events"
-      },
-      headers: {
-        "User-Agent": "Request-Promise",
-        Accept: "application/json, text/plain, */*"
-        //       "Content-Type": "application/json"
-      }
-      //json: true // Automatically parses the JSON string in the response
-    };
-
     res.redirect(
       `https://app.cronofy.com/oauth/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}`
     );
@@ -108,12 +91,15 @@ app.get("/nextStep", async (req, res, next) => {
         },
         json: true // Automatically parses the JSON string in the response
       };
-      await requestPromise(options)
-        .then(code => {
+      const ask = await requestPromise(options).catch(e => console.error(e));
+      console.log(ask);
+      res.send(ask);
+      /*  
+      .then(code => {
           console.log(code);
           res.send("new ac: " + code.access_token);
         })
-        .catch(e => console.error(e));
+        */
     }
 
     //console.log("req from cronofy :", req.query.code);
