@@ -12,11 +12,14 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.18.3",
+    "cronofy": "^3.0.6",
     "express": "^4.16.4",
     "foreman": "^3.0.1",
     "heroku-ssl-redirect": "0.0.4",
     "http": "0.0.0",
     "https": "^1.0.0",
-    "password-generator": "^2.2.0"
+    "password-generator": "^2.2.0",
+    "request": "^2.88.0",
+    "request-promise-native": "^1.0.5"
   }
 }

@@ -3,12 +3,15 @@ const path = require("path");
 const generatePassword = require("password-generator");
 const bodyParser = require("body-parser");
 const sslRedirect = require("heroku-ssl-redirect");
+const requestPromise = require("request-promise-native");
+
+const cronofy = require("cronofy");
 
 const app = express();
 
 // Serve static files from the React app
-app.use(express.static(path.join(__dirname, "client/build")));
-app.use(bodyParser.json());
+//app.use(express.static(path.join(__dirname, "client/build")));
+//app.use(bodyParser.json());
 app.use(sslRedirect());
 
 app.get("/passwords", (req, res) => {
@@ -25,11 +28,109 @@ app.get("/passwords", (req, res) => {
   console.log(`Sent ${count} passwords`);
 });
 
+app.get("/cronofy-auth", async (req, res, next) => {
+  try {
+    //return res.send(req);
+    //console.log(res);
+    const client_id = "H64-3XqkIV37IKKqIg6PDlbIwq_C9qSa";
+    // const client_secret =
+    // "sRAdSsqCqMFRa5KuAq_fmwUvLSGEbSIXCZxIsvu3RToM7PjmtQLr-32LHB1614fFcx-SlmoJ2nQmUI8f3pCYUw";
+    // const response_type = "code";
+    const redirect_uri = "http://localhost:8080/nextStep";
+    const scope = "read_events";
+
+    var options = {
+      uri: "https://app.cronofy.com/oauth/authorize",
+      method: "GET",
+      qs: {
+        response_type: "code",
+        client_id: "H64-3XqkIV37IKKqIg6PDlbIwq_C9qSa",
+        redirect_uri: "https://app.cronofy.com/oauth/v2/authorize",
+        scope: "read_events"
+      },
+      headers: {
+        "User-Agent": "Request-Promise",
+        Accept: "application/json, text/plain, */*"
+        //       "Content-Type": "application/json"
+      }
+      //json: true // Automatically parses the JSON string in the response
+    };
+
+    res.redirect(
+      `https://app.cronofy.com/oauth/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}`
+    );
+    /*
+    requestPromise(options)
+      .then(resFromToken => {
+        //console.log(resFromToken);
+        //return res.send(resFromToken);
+        res.send(resFromToken);
+      })
+      .catch(err => res.send(err));
+
+    //console.log(token);
+
+    */
+    //    return res.send();
+  } catch (err) {
+    return console.error(err);
+  }
+});
+
+/*
+app.get("/oauth/v2/authorize", async (req, res, next) => {
+  console.log(req);
+  res.send();
+});
+
+*/
+app.get("/nextStep", async (req, res, next) => {
+  try {
+    if (req.body && req.body.accessCode) {
+      console.log("Has access");
+      res.send(`User access code is: ${req.body.accessCode}`);
+    } else {
+      console.log("Just a code so far: " + req.query.code);
+      var options = {
+        uri: "https://api.cronofy.com/oauth/token",
+        method: "POST",
+        qs: {
+          client_id: "H64-3XqkIV37IKKqIg6PDlbIwq_C9qSa",
+          client_secret:
+            "sRAdSsqCqMFRa5KuAq_fmwUvLSGEbSIXCZxIsvu3RToM7PjmtQLr-32LHB1614fFcx-SlmoJ2nQmUI8f3pCYUw",
+          grant_type: "authorization_code",
+          code: req.query.code,
+          redirect_uri: "http://localhost:8080/nextStep"
+        },
+        headers: {
+          "User-Agent": "Request-Promise",
+          "Content-Type": "application/json charset=utf-8"
+        },
+        json: true // Automatically parses the JSON string in the response
+      };
+      await requestPromise(options)
+        .then(code => {
+          console.log(code);
+          res.send("new ac: " + code.access_token);
+        })
+        .catch(e => console.error(e));
+    }
+
+    //console.log("req from cronofy :", req.query.code);
+    //res.send(`Code is ${req.query.code}`);
+  } catch (e) {
+    res.send(e);
+  }
+});
+
 // The "catchall" handler: for any request that doesn't
 // match one above, send back React's index.html file.
+
+/*
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname + "/index.html"));
 });
+*/
 
 const port = process.env.PORT || 8080;
 
