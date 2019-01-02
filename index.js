@@ -4,14 +4,27 @@ const generatePassword = require("password-generator");
 const bodyParser = require("body-parser");
 const sslRedirect = require("heroku-ssl-redirect");
 const requestPromise = require("request-promise-native");
-
+const cors = require("cors");
 const cronofy = require("cronofy");
 
 const app = express();
 
+// demo db
+var authenticatedUsers = [];
+
 // Serve static files from the React app
 //app.use(express.static(path.join(__dirname, "client/build")));
 //app.use(bodyParser.json());
+
+app.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Origin, X-Requested-With, Content-Type, Accept"
+  );
+  next();
+});
+
 app.use(sslRedirect());
 
 app.get("/passwords", (req, res) => {
@@ -23,50 +36,31 @@ app.get("/passwords", (req, res) => {
   );
 
   // Return them as json
-  res.json(passwords);
+  //res.json(passwords);
 
-  console.log(`Sent ${count} passwords`);
+  //res.send(JSON.stringify(passwords));
+  res.send(passwords);
+  console.log(`Sent ${count} passwords, and they are ${passwords}.`);
+  //res.send(passwords)
+});
+
+app.get("/show-user", async (req, res, next) => {
+  res.send(authenticatedUsers);
 });
 
 app.get("/cronofy-auth", async (req, res, next) => {
   try {
-    //return res.send(req);
-    //console.log(res);
     const client_id = "H64-3XqkIV37IKKqIg6PDlbIwq_C9qSa";
-    // const client_secret =
-    // "sRAdSsqCqMFRa5KuAq_fmwUvLSGEbSIXCZxIsvu3RToM7PjmtQLr-32LHB1614fFcx-SlmoJ2nQmUI8f3pCYUw";
-    // const response_type = "code";
     const redirect_uri = "http://localhost:8080/nextStep";
     const scope = "read_events";
-
     res.redirect(
       `https://app.cronofy.com/oauth/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}`
     );
-    /*
-    requestPromise(options)
-      .then(resFromToken => {
-        //console.log(resFromToken);
-        //return res.send(resFromToken);
-        res.send(resFromToken);
-      })
-      .catch(err => res.send(err));
-
-    //console.log(token);
-
-    */
-    //    return res.send();
   } catch (err) {
     return console.error(err);
   }
 });
 
-/*
-app.get("/oauth/v2/authorize", async (req, res, next) => {
-  console.log(req);
-  res.send();
-});
-
-*/
 app.get("/nextStep", async (req, res, next) => {
   try {
     req.query &&
@@ -89,8 +83,14 @@ app.get("/nextStep", async (req, res, next) => {
       },
       json: true // Automatically parses the JSON string in the response
     };
-    const ask = await requestPromise(options)
-      .then(() => res.redirect("http://localhost:8080/authenticated"))
+    await requestPromise(options)
+      .then(answer => {
+        authenticatedUsers.push(answer);
+        //accessToken;
+        // make that a proper redirect!\\
+
+        return res.redirect("http://localhost:3000/");
+      })
       .catch(e => console.error(e));
   } catch (e) {
     res.send(e);
