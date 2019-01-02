@@ -36,7 +36,7 @@ app.get("/passwords", (req, res) => {
   );
 
   res.send(passwords);
-  console.log(`Sent ${count} passwords, and they are ${passwords}.`);
+  console.log(`Sent ${count} fake passwords, and they are the fakes ${passwords}.`);
 });
 
 app.get("/show-user", async (req, res, next) => {
@@ -105,4 +105,4 @@ app.get("*", (req, res) => {
 const port = process.env.PORT || 8080;
 
 app.listen(port);
-console.log(`Password generator listening on ${port}`);
+console.log(`Fake password generator listening on ${port}`);
