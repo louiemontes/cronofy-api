@@ -69,41 +69,29 @@ app.get("/oauth/v2/authorize", async (req, res, next) => {
 */
 app.get("/nextStep", async (req, res, next) => {
   try {
-    if (req.body && req.body.accessCode) {
-      console.log("Has access");
-      res.send(`User access code is: ${req.body.accessCode}`);
-    } else {
+    req.query &&
+      req.query.code &&
       console.log("Just a code so far: " + req.query.code);
-      var options = {
-        uri: "https://api.cronofy.com/oauth/token",
-        method: "POST",
-        qs: {
-          client_id: "H64-3XqkIV37IKKqIg6PDlbIwq_C9qSa",
-          client_secret:
-            "sRAdSsqCqMFRa5KuAq_fmwUvLSGEbSIXCZxIsvu3RToM7PjmtQLr-32LHB1614fFcx-SlmoJ2nQmUI8f3pCYUw",
-          grant_type: "authorization_code",
-          code: req.query.code,
-          redirect_uri: "http://localhost:8080/nextStep"
-        },
-        headers: {
-          "User-Agent": "Request-Promise",
-          "Content-Type": "application/json charset=utf-8"
-        },
-        json: true // Automatically parses the JSON string in the response
-      };
-      const ask = await requestPromise(options).catch(e => console.error(e));
-      console.log(ask);
-      res.send(ask);
-      /*  
-      .then(code => {
-          console.log(code);
-          res.send("new ac: " + code.access_token);
-        })
-        */
-    }
-
-    //console.log("req from cronofy :", req.query.code);
-    //res.send(`Code is ${req.query.code}`);
+    var options = {
+      uri: "https://api.cronofy.com/oauth/token",
+      method: "POST",
+      qs: {
+        client_id: "H64-3XqkIV37IKKqIg6PDlbIwq_C9qSa",
+        client_secret:
+          "sRAdSsqCqMFRa5KuAq_fmwUvLSGEbSIXCZxIsvu3RToM7PjmtQLr-32LHB1614fFcx-SlmoJ2nQmUI8f3pCYUw",
+        grant_type: "authorization_code",
+        code: req.query.code,
+        redirect_uri: "http://localhost:8080/nextStep"
+      },
+      headers: {
+        "User-Agent": "Request-Promise",
+        "Content-Type": "application/json charset=utf-8"
+      },
+      json: true // Automatically parses the JSON string in the response
+    };
+    const ask = await requestPromise(options)
+      .then(() => res.redirect("http://localhost:8080/authenticated"))
+      .catch(e => console.error(e));
   } catch (e) {
     res.send(e);
   }
@@ -111,12 +99,13 @@ app.get("/nextStep", async (req, res, next) => {
 
 // The "catchall" handler: for any request that doesn't
 // match one above, send back React's index.html file.
+app.get("/authenticated", (req, res) => {
+  res.sendFile(path.join(__dirname + "/auth.html"));
+});
 
-/*
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname + "/index.html"));
 });
-*/
 
 const port = process.env.PORT || 8080;
 
