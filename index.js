@@ -47,12 +47,6 @@ app.get("/cronofy-auth", async (req, res, next) => {
   try {
     const redirect_uri = `${process.env.CRONOFY_API_URL}/nextStep`;
     const scope = "read_events";
-    console.log(process.env);
-    console.log(
-      process.env.CRONOFY_API_CLIENT_ID,
-      process.env.CRONOFY_API_CLIENT_SECRET
-    );
-
 
     res.redirect(
       `https://app.cronofy.com/oauth/authorize?response_type=code&client_id=${
@@ -70,10 +64,6 @@ app.get("/nextStep", async (req, res, next) => {
       req.query.code &&
       console.log("Just a code so far: " + req.query.code);
 
-    console.log(
-      process.env.CRONOFY_API_CLIENT_ID,
-      process.env.CRONOFY_API_CLIENT_SECRET
-    );
     var options = {
       uri: "https://api.cronofy.com/oauth/token",
       method: "POST",
@@ -93,9 +83,7 @@ app.get("/nextStep", async (req, res, next) => {
     await requestPromise(options)
       .then(answer => {
         authenticatedUsers.push(answer);
-        //accessToken;
-        // make that a proper redirect!\\
-
+        console.log("An access code now: " + answer.access_token);
         return res.redirect(`${process.env.CRONOFY_WEB_URL}`);
       })
       .catch(e => console.error(e));
@@ -118,4 +106,3 @@ const port = process.env.PORT || 8080;
 
 app.listen(port);
 console.log(`Password generator listening on ${port}`);
-console.log(process.env.CRONOFY_API_CLIENT_SECRET);
