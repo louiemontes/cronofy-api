@@ -35,13 +35,8 @@ app.get("/passwords", (req, res) => {
     generatePassword(12, false)
   );
 
-  // Return them as json
-  //res.json(passwords);
-
-  //res.send(JSON.stringify(passwords));
   res.send(passwords);
   console.log(`Sent ${count} passwords, and they are ${passwords}.`);
-  //res.send(passwords)
 });
 
 app.get("/show-user", async (req, res, next) => {
@@ -50,11 +45,19 @@ app.get("/show-user", async (req, res, next) => {
 
 app.get("/cronofy-auth", async (req, res, next) => {
   try {
-    const client_id = "H64-3XqkIV37IKKqIg6PDlbIwq_C9qSa";
-    const redirect_uri = "http://localhost:8080/nextStep";
+    const redirect_uri = `${process.env.CRONOFY_API_URL}/nextStep`;
     const scope = "read_events";
+    console.log(process.env);
+    console.log(
+      process.env.CRONOFY_API_CLIENT_ID,
+      process.env.CRONOFY_API_CLIENT_SECRET
+    );
+
+
     res.redirect(
-      `https://app.cronofy.com/oauth/authorize?response_type=code&client_id=${client_id}&redirect_uri=${redirect_uri}&scope=${scope}`
+      `https://app.cronofy.com/oauth/authorize?response_type=code&client_id=${
+        process.env.CRONOFY_API_CLIENT_ID
+      }&redirect_uri=${redirect_uri}&scope=${scope}`
     );
   } catch (err) {
     return console.error(err);
@@ -66,16 +69,20 @@ app.get("/nextStep", async (req, res, next) => {
     req.query &&
       req.query.code &&
       console.log("Just a code so far: " + req.query.code);
+
+    console.log(
+      process.env.CRONOFY_API_CLIENT_ID,
+      process.env.CRONOFY_API_CLIENT_SECRET
+    );
     var options = {
       uri: "https://api.cronofy.com/oauth/token",
       method: "POST",
       qs: {
-        client_id: "H64-3XqkIV37IKKqIg6PDlbIwq_C9qSa",
-        client_secret:
-          "sRAdSsqCqMFRa5KuAq_fmwUvLSGEbSIXCZxIsvu3RToM7PjmtQLr-32LHB1614fFcx-SlmoJ2nQmUI8f3pCYUw",
+        client_id: process.env.CRONOFY_API_CLIENT_ID,
+        client_secret: process.env.CRONOFY_API_CLIENT_SECRET,
         grant_type: "authorization_code",
         code: req.query.code,
-        redirect_uri: "http://localhost:8080/nextStep"
+        redirect_uri: `${process.env.CRONOFY_API_URL}/nextStep`
       },
       headers: {
         "User-Agent": "Request-Promise",
@@ -89,7 +96,7 @@ app.get("/nextStep", async (req, res, next) => {
         //accessToken;
         // make that a proper redirect!\\
 
-        return res.redirect("http://localhost:3000/");
+        return res.redirect(`${process.env.CRONOFY_WEB_URL}`);
       })
       .catch(e => console.error(e));
   } catch (e) {
