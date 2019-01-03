@@ -36,16 +36,42 @@ app.get("/passwords", (req, res) => {
   );
 
   res.send(passwords);
-  console.log(`Sent ${count} fake passwords, and they are the fakes ${passwords}.`);
+  console.log(
+    `Sent ${count} fake passwords, and they are the fakes ${passwords}.`
+  );
 });
 
-app.get("/show-user", async (req, res, next) => {
-  res.send(authenticatedUsers);
+function userHasAuthorized(someAuthenticatedUsers, someUserId) {
+  let hasUserAuthed = false;
+  if (!someAuthenticatedUsers.length) {
+    return hasUserAuthed;
+  } else {
+    someAuthenticatedUsers.forEach(accessBlock => {
+      if (accessBlock.userId === someUserId) {
+        hasUserAuthed = true;
+      }
+    });
+    return hasUserAuthed;
+  }
+}
+
+app.get("/show-user/:userId", async (req, res, next) => {
+  if (
+    req.params &&
+    req.params.userId &&
+    userHasAuthorized(authenticatedUsers, req.params.userId)
+  ) {
+    res.send(authenticatedUsers);
+  } else {
+    res.send("Get out of here!");
+  }
 });
 
-app.get("/cronofy-auth", async (req, res, next) => {
+app.get("/cronofy-auth/:userId", async (req, res, next) => {
   try {
-    const redirect_uri = `${process.env.CRONOFY_API_URL}/nextStep`;
+    const redirect_uri = `${process.env.CRONOFY_API_URL}/nextStep/${
+      req.params.userId
+    }`;
     const scope = "read_events";
 
     res.redirect(
@@ -58,7 +84,7 @@ app.get("/cronofy-auth", async (req, res, next) => {
   }
 });
 
-app.get("/nextStep", async (req, res, next) => {
+app.get("/nextStep/:userId", async (req, res, next) => {
   try {
     req.query &&
       req.query.code &&
@@ -72,7 +98,9 @@ app.get("/nextStep", async (req, res, next) => {
         client_secret: process.env.CRONOFY_API_CLIENT_SECRET,
         grant_type: "authorization_code",
         code: req.query.code,
-        redirect_uri: `${process.env.CRONOFY_API_URL}/nextStep`
+        redirect_uri: `${process.env.CRONOFY_API_URL}/nextStep/${
+          req.params.userId
+        }`
       },
       headers: {
         "User-Agent": "Request-Promise",
@@ -82,7 +110,8 @@ app.get("/nextStep", async (req, res, next) => {
     };
     await requestPromise(options)
       .then(answer => {
-        authenticatedUsers.push(answer);
+        const { userId } = req.params;
+        authenticatedUsers.push({ userId, ...answer });
         console.log("An access code now: " + answer.access_token);
         return res.redirect(`${process.env.CRONOFY_WEB_URL}`);
       })
