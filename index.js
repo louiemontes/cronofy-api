@@ -1,12 +1,9 @@
 const express = require("express");
 const path = require("path");
 const generatePassword = require("password-generator");
-const bodyParser = require("body-parser");
 const sslRedirect = require("heroku-ssl-redirect");
 const requestPromise = require("request-promise-native");
-const cors = require("cors");
 const Cronofy = require("cronofy");
-const Moment = require("moment");
 
 const app = express();
 
@@ -55,10 +52,6 @@ function userHasAuthorized(someAuthenticatedUsers, someUserId) {
     });
     return hasUserAuthed;
   }
-}
-
-function makeId() {
-  return Math.floor(Math.random() * 1000000000);
 }
 
 app.get("/show-user/:userId", async (req, res, next) => {
@@ -127,41 +120,10 @@ app.get("/nextStep/:userId", async (req, res, next) => {
   }
 });
 
-/*
-app.get("/readCalenders/:accessToken", async (req, res, next) => {
-  try {
-    console.log("in read calanders");
-    var options = {
-      uri: `https://api.cronofy.com/v1/calendars`,
-      method: "GET",
-      headers: {
-        "User-Agent": "Request-Promise",
-        "Content-Type": "application/json charset=utf-8",
-        Authorization: `Bearer ${req.params.accessToken}`
-      },
-
-      body: {},
-      json: true // Automatically parses the JSON string in the response
-    };
-    await requestPromise(options)
-      .then(answer => {
-        console.log(answer);
-        res.send(answer.calendars[0].calendar_id);
-      })
-      .catch(e => console.log(e));
-  } catch (error) {
-    res.send(e);
-  }
-});
-*/
-
 app.post("/createEvent/:userId", async (req, res, next) => {
   try {
-    console.log(req.params);
-    console.log(req.body);
     const { access_token } = req.body;
 
-    console.log({ access_token });
     var cronofyClient = new Cronofy({
       access_token
     });
@@ -178,7 +140,6 @@ app.post("/createEvent/:userId", async (req, res, next) => {
         throw errorFromList;
       });
 
-    console.log(calendarId);
     let rawStart = new Date(req.body.start);
     const cleanStart = rawStart.toISOString();
     let rawEnd = new Date(req.body.end);
@@ -186,7 +147,7 @@ app.post("/createEvent/:userId", async (req, res, next) => {
 
     var options = {
       calendar_id: calendarId,
-      event_id: "luisEvent",
+      event_id: "randoEvent",
       summary: "Board meeting",
       description: "Made from demo",
       start: cleanStart,
@@ -213,7 +174,6 @@ app.post("/deleteEvent/:userId", async (req, res, next) => {
   try {
     const { access_token } = req.body;
 
-    console.log({ access_token });
     var cronofyClient = new Cronofy({
       access_token
     });
@@ -222,7 +182,6 @@ app.post("/deleteEvent/:userId", async (req, res, next) => {
     await cronofyClient
       .listCalendars()
       .then(answer => {
-        console.log(answer);
         calendarId = answer.calendars[0].calendar_id;
         return calendarId;
       })
@@ -230,11 +189,9 @@ app.post("/deleteEvent/:userId", async (req, res, next) => {
         throw errorFromList;
       });
 
-    console.log(calendarId);
-
     var options = {
       calendar_id: calendarId,
-      event_id: "luisEvent"
+      event_id: "randoEvent"
     };
 
     await cronofyClient
